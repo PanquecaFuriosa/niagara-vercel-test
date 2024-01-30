@@ -1,0 +1,32 @@
+name: docker_sanity
+run-name: Checks docker containers sanity
+
+on  :
+  push:
+      branches:
+          - release
+  pull_request:
+      types: [opened, reopened]
+      branches:
+          - release
+            
+jobs:
+    check-compose:
+        runs-on : ubuntu-latest
+        steps   :
+            - uses: actions/checkout@v4
+
+            - name: Create .env
+              run : echo "${{ secrets.DUMMY_ENV_FILE }}" > .env
+                  
+            - name: Docker sanity check
+              run : |
+                chmod +x ./.github/scripts/docker_sanity_check.sh
+                ./.github/scripts/docker_sanity_check.sh
+                  
+            - if  : ${{ failure() }}
+              run : |
+                echo Docker is not working properly
+                exit 1
+
+            - run : echo Successfully checked docker sanity
